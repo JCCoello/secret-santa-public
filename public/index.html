@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amigo Secreto</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎄 Amigo Secreto 🎅</h1>
+      </header>
+
+      <div class="form-section">
+        <h2>Participantes</h2>
+        <p>¡Agrega al menos 2 miembros de la familia para comenzar!</p>
+
+        <div id="participants-list">
+          <!-- Participants will be added here -->
+        </div>
+
+        <div class="add-participant">
+          <div class="form-group">
+            <label for="participant-name">Nombre:</label>
+            <input
+              type="text"
+              id="participant-name"
+              placeholder="Ingresa el nombre del familiar"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="participant-email">Correo:</label>
+            <input
+              type="email"
+              id="participant-email"
+              placeholder="su.correo@ejemplo.com"
+            />
+          </div>
+
+          <button type="button" id="add-participant-btn">
+            Agregar Participante
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="budget">Monto a gastar:</label>
+          <input type="text" id="budget" placeholder="ej. $25-50" />
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notas adicionales:</label>
+          <textarea
+            id="notes"
+            placeholder="Instrucciones especiales o temas..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="action-section">
+        <button type="button" id="create-secret-santa-btn" disabled>
+          🎁 Crear Amigo Secreto y Enviar Correos
+        </button>
+
+        <div id="result-message" class="hidden"></div>
+      </div>
+
+      <footer></footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
