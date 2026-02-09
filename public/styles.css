@@ -199,8 +199,13 @@ header p {
 }
 
 .add-participant button {
+  height: 46px;
+  padding: 0 24px;
   border: 2px solid transparent;
   box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Button styles */
