@@ -191,7 +191,7 @@ header p {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) minmax(200px, 1fr) auto;
   gap: 15px;
-  align-items: end;
+  align-items: center;
   background: white;
   padding: 20px;
   border-radius: 10px;
