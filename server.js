@@ -25,6 +25,7 @@ const MSG = {
     errorMinParticipants: "At least 2 participants with name and email are required.",
     errorParticipantNameEmail: "Each participant must have a name and email.",
     errorCreateAssignments: "Error creating Secret Santa assignments. Please try again.",
+    errorEmailNotConfigured: "Email is not configured. Set EMAIL_USER and EMAIL_PASS (e.g. in Vercel or in a .env file).",
     successEmailsSent: "Secret Santa emails sent to {{count}} participants!",
     emailSubject: "Your Secret Santa Assignment!",
     emailTitle: "Secret Santa Assignment",
@@ -39,6 +40,7 @@ const MSG = {
     errorMinParticipants: "Se necesitan al menos 2 participantes con nombre y correo",
     errorParticipantNameEmail: "Cada participante debe tener un nombre y correo",
     errorCreateAssignments: "Error al crear las asignaciones de Amigo Secreto. Por favor intenta de nuevo.",
+    errorEmailNotConfigured: "El correo no está configurado. Configura EMAIL_USER y EMAIL_PASS (por ejemplo en Vercel o en un archivo .env).",
     successEmailsSent: "¡Correos de Amigo Secreto enviados a {{count}} participantes!",
     emailSubject: "¡Tu Asignación de Amigo Secreto!",
     emailTitle: "Asignación de Amigo Secreto",
@@ -205,10 +207,19 @@ function escapeEmailHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+// Prefer language from body; fallback to Accept-Language so API errors match UI language
+function getRequestLang(body, headers) {
+  if (body && body.lang === "en") return "en";
+  if (body && body.lang === "es") return "es";
+  const accept = (headers && headers["accept-language"]) || "";
+  if (accept.toLowerCase().startsWith("en")) return "en";
+  return "es";
+}
+
 // API endpoint to create and send Secret Santa assignments
 app.post("/api/create-secret-santa", async (req, res) => {
   const body = req.body && typeof req.body === "object" ? req.body : {};
-  const lang = body.lang === "en" ? "en" : "es";
+  const lang = getRequestLang(body, req.headers);
   try {
     const { participants, budget, notes } = body;
 
@@ -227,6 +238,15 @@ app.post("/api/create-secret-santa", async (req, res) => {
     }
 
     const assignments = assignSecretSanta(participants);
+
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = process.env.EMAIL_PASS;
+    if (!emailUser || !emailPass || emailUser === "your-email@gmail.com") {
+      return res.status(503).json({
+        error: st(lang, "errorEmailNotConfigured"),
+      });
+    }
+
     await sendSecretSantaEmails(assignments, budget, notes, lang);
 
     res.json({
@@ -236,9 +256,11 @@ app.post("/api/create-secret-santa", async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating Secret Santa:", error);
-    res.status(500).json({
-      error: st(lang, "errorCreateAssignments"),
-    });
+    const message =
+      error.code === "EAUTH" || error.message?.includes("Invalid login")
+        ? st(lang, "errorEmailNotConfigured")
+        : st(lang, "errorCreateAssignments");
+    res.status(500).json({ error: message });
   }
 });
 
