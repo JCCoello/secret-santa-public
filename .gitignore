@@ -26,6 +26,10 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 
+# Editor and tooling (keep repo focused on app only)
+.cursor/
+_bmad/
+
 # Editor directories and files
 .vscode/
 .idea/

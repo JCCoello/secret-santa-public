@@ -198,6 +198,11 @@ header p {
   border: 2px dashed #ddd;
 }
 
+.add-participant button {
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+
 /* Button styles */
 button {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
