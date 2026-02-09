@@ -45,7 +45,7 @@ const TRANSLATIONS = {
     participantsHeading: "Participantes",
     participantsHint: "¡Agrega al menos 2 personas para comenzar!",
     nameLabel: "Nombre:",
-    namePlaceholder: "Ingresa el nombre del participante",
+    namePlaceholder: "Nombre del participante",
     emailLabel: "Correo:",
     emailPlaceholder: "su.correo@ejemplo.com",
     addParticipant: "Agregar Participante",
