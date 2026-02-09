@@ -1,212 +1,140 @@
 # 🎄 Secret Santa Web App
 
-A simple, ad-free Secret Santa web application perfect for teams, families, or any group gift exchange. No registration required, no data tracking - just pure holiday magic!
+A simple, ad-free Secret Santa web app for teams, families, or any group gift exchange. No accounts, no tracking—just add names and emails, hit the button, and everyone gets their assignment by email.
 
 ## ✨ Features
 
-- **Clean & Simple Interface**: Easy-to-use form for adding family members
-- **Smart Assignment Algorithm**: Ensures no one gets themselves as their Secret Santa
-- **Automatic Email Sending**: Sends personalized emails to each participant with their assignment
-- **Event Details**: Include budget, date, location, and special notes
-- **Mobile Friendly**: Works great on phones and tablets
-- **No Ads**: Pure family fun without distractions
-- **Privacy Focused**: No data storage or tracking
-- **English & Spanish**: Language switcher in the header; choice is saved and used for UI, emails, and API messages
+- **Simple interface** — Add participants (name + email), optional budget and notes, one button to draw and send.
+- **Fair assignments** — No one gets themselves; algorithm ensures valid pairings.
+- **Email delivery** — Each person gets one HTML email with their assignment and event details (budget, notes).
+- **English & Spanish** — Language switcher (EN | ES) in the header; choice is saved and used for the whole app and emails.
+- **Mobile friendly** — Works on phones and tablets.
+- **Deploy anywhere** — Run locally or deploy to Vercel for a public URL.
+- **Privacy focused** — No storage of participant data beyond sending the emails.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js (version 14 or higher)
-- Gmail account (or other email service) for sending emails
+- **Node.js** 14+
+- **Email account** (e.g. Gmail) for sending (see [Email setup](#-email-setup)).
 
-### Installation
+### Run locally
 
-1. **Clone or download this project** to your computer
+1. **Clone the repo** and go to the project folder.
 
-2. **Install dependencies**:
+2. **Install dependencies:**
 
    ```bash
    npm install
    ```
 
-3. **Set up email configuration** (see Email Setup section below)
+3. **Configure email** — Copy `.env.example` to `.env` and set your sender credentials (see [Email setup](#-email-setup)).
 
-4. **Start the application**:
+4. **Start the app:**
 
    ```bash
    npm start
    ```
 
-5. **Open your browser** and go to `http://localhost:3000`
+5. Open **http://localhost:3000** in your browser.
 
-## 🌐 Deploy globally with Vercel
+## 🌐 Deploy on Vercel
 
-Deploy this app to Vercel to get a public URL so anyone can access it from anywhere.
+The app is set up for Vercel serverless deployment so you can share a single link.
 
-1. **Install Vercel CLI** (optional, for local deploy):
+1. **Push the repo to GitHub** (if you haven’t already).
 
-   ```bash
-   npm i -g vercel
-   ```
+2. **Import on Vercel** — [vercel.com](https://vercel.com) → **Add New** → **Project** → import this repo. Use the default settings (no build step; Vercel uses `api/index.js` and `vercel.json`).
 
-2. **Deploy**:
+3. **Set environment variables** in the Vercel project (**Settings → Environment Variables**):
+   - `EMAIL_USER` — sender email (e.g. your Gmail).
+   - `EMAIL_PASS` — app password (for Gmail: 2FA + App password).
 
-   - **From the web**: Push this repo to GitHub, then go to [vercel.com](https://vercel.com) → **Add New Project** → import the repo. Vercel will detect the Node app and use `api/index.js` and `vercel.json`.
-   - **From the CLI**: Run `vercel` in the project root and follow the prompts.
-
-3. **Set environment variables on Vercel** (required for email):
-
-   - In the Vercel project: **Settings → Environment Variables**
-   - Add `EMAIL_USER` and `EMAIL_PASS` (same as in Email Setup).
-
-4. Your app will be live at `https://your-project.vercel.app` (or your custom domain).
+4. **Deploy** — Your app will be live at `https://<your-project>.vercel.app` (or your custom domain).
 
 ## 📧 Email Setup
 
-To send Secret Santa emails, you need to configure email credentials:
+Sending requires SMTP credentials via environment variables.
 
-### Option 1: Environment Variables (Recommended)
+1. **Create a `.env` file** in the project root (see `.env.example`):
 
-Create a `.env` file in the project root:
+   ```
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-password
+   ```
 
-```
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-```
+2. **Gmail:** Enable 2-Step Verification, then create an **App password** (Google Account → Security → 2-Step Verification → App passwords) and use it as `EMAIL_PASS`.
 
-### Option 2: Direct Configuration
-
-Edit `server.js` and update the email configuration in the `createTransporter()` function.
-
-### Gmail Setup
-
-1. Enable 2-Factor Authentication on your Google account
-2. Generate an App Password:
-   - Go to Google Account settings
-   - Security → 2-Step Verification → App passwords
-   - Generate a password for "Mail"
-   - Use this password in EMAIL_PASS
-
-### Other Email Providers
-
-Update the transporter configuration in `server.js` for other email services like Outlook, Yahoo, etc.
+3. **Other providers** — The app detects Outlook/Hotmail/Live and uses the right SMTP; for others you can adjust the transporter in `server.js` (see `createTransporter()`).
 
 ## 🎯 How to Use
 
-1. **Add Event Details** (optional):
+1. **Language** — Use **EN** or **ES** in the top-right; the whole UI and emails follow that language.
+2. **Participants** — Add at least 2 people (name + email). Remove or correct entries as needed.
+3. **Optional** — Fill in “Amount to spend” and “Additional notes” if you want them in the emails.
+4. **Create Secret Santa** — Click the main button. Assignments are drawn and emails sent; each person only sees their own assignment.
 
-   - Set a budget range
-   - Choose an exchange date
-   - Specify location
-   - Add any special notes or themes
+## 🎁 What’s in the Email
 
-2. **Add Participants**:
+Each participant gets one HTML email with:
 
-   - Enter each family member's name and email
-   - Need at least 2 people to create assignments
-   - Remove participants if needed
+- Their Secret Santa assignment (who they’re giving a gift to).
+- Budget and notes if you entered them.
+- Short reminder to keep it secret.
+- Language matches the language selected in the app.
 
-3. **Create Secret Santa**:
-   - Click the big red button to generate assignments
-   - Emails are sent automatically to all participants
-   - Each person gets their assignment privately
+## 🛠 Technical Overview
 
-## 🎁 Email Template
+### Stack
 
-Each participant receives a beautiful HTML email containing:
+- **Backend:** Node.js, Express.
+- **Email:** Nodemailer (Gmail/Outlook-style SMTP).
+- **Frontend:** Vanilla HTML, CSS, and JavaScript.
+- **i18n:** `public/translations.js` (EN/ES); server uses matching strings for API and emails.
 
-- Their Secret Santa assignment
-- Event details (budget, date, location)
-- Holiday-themed design
-- Reminder to keep it secret
-
-## 🛠 Technical Details
-
-### Built With
-
-- **Backend**: Node.js with Express
-- **Email**: Nodemailer
-- **Frontend**: Vanilla HTML, CSS, JavaScript
-- **Styling**: Modern CSS with gradients and animations
-
-### Project Structure
+### Project layout
 
 ```
-secret-santa-app/
-├── server.js              # Express server and API
-├── package.json          # Dependencies and scripts
-├── README.md             # This file
-├── .env                  # Email credentials (create this)
+├── server.js           # Express app, API, and email logic
+├── api/
+│   └── index.js         # Vercel serverless entry
+├── vercel.json         # Vercel rewrites (all routes → /api)
+├── package.json
+├── .env.example        # Example env vars (copy to .env)
+├── .gitignore
+├── README.md
 └── public/
-    ├── index.html        # Main web interface
-    ├── translations.js  # EN/ES strings and language helpers
-    ├── styles.css        # Styling and layout
-    └── script.js         # Frontend JavaScript
+    ├── index.html      # Single-page UI
+    ├── favicon.png     # Santa favicon
+    ├── translations.js # EN/ES copy and language helpers
+    ├── styles.css      # Layout and theme
+    └── script.js       # UI and API calls
 ```
 
-### API Endpoints
+### API
 
-- `GET /` - Serves the main application
-- `POST /api/create-secret-santa` - Creates assignments and sends emails
+- **GET /** — Serves the web app (HTML, assets).
+- **POST /api/create-secret-santa** — Request body: `{ participants, budget?, notes?, lang? }`. Draws assignments, sends emails, returns success or error. `lang` is `"en"` or `"es"` (defaults to `"es"`).
 
-## 🔒 Privacy & Security
+### Security notes
 
-- **No Data Storage**: Participant information is only used to send emails
-- **No Tracking**: No analytics, cookies, or user tracking
-- **Local First**: Runs on your own computer/server
-- **Open Source**: Full transparency in how it works
+- Participant names, emails, budget, and notes are only used to run the draw and send emails.
+- User-supplied content in emails is HTML-escaped to avoid injection.
+- No analytics or tracking; no persistent storage of participants.
 
-## 🎄 Customization
+## 🔧 Customization
 
-### Styling
-
-Edit `public/styles.css` to customize colors, fonts, and layout.
-
-### Email Template
-
-Modify the HTML template in `server.js` in the `sendSecretSantaEmails()` function.
-
-### Assignment Algorithm
-
-The algorithm in `assignSecretSanta()` ensures fair, random assignments with no self-assignments.
+- **Look and feel** — Edit `public/styles.css`.
+- **Email layout / text** — Edit the template in `sendSecretSantaEmails()` in `server.js` and the `MSG` strings for each language.
+- **Copy (EN/ES)** — Edit `public/translations.js` (UI) and the `MSG` object in `server.js` (API and emails).
 
 ## 📋 Troubleshooting
 
-### Email Issues
-
-- **Authentication Error**: Check your app password and email settings
-- **Emails Not Sending**: Verify your email service configuration
-- **Gmail Blocking**: Make sure 2FA is enabled and you're using an app password
-
-### General Issues
-
-- **Port Already in Use**: The app runs on port 3000 by default. Change it by setting PORT environment variable
-- **Dependencies Error**: Run `npm install` to install all required packages
-- **Browser Issues**: Try a different browser or clear your cache
-
-## 🎅 Tips for Success
-
-1. **Test First**: Send a test email to yourself before the family event
-2. **Double-Check Emails**: Make sure all email addresses are correct
-3. **Set Expectations**: Include clear event details and gift guidelines
-4. **Backup Plan**: Keep a record of who got whom (just in case!)
-
-## 💝 Contributing
-
-This is a simple family project, but feel free to:
-
-- Report bugs or issues
-- Suggest new features
-- Submit improvements
-- Share with other families!
+- **Emails not sending** — Check `EMAIL_USER` and `EMAIL_PASS`, 2FA + App password for Gmail, and that nothing is blocking SMTP.
+- **Port in use** — Set `PORT` in the environment (e.g. `PORT=3001 npm start`).
+- **Vercel** — Ensure `EMAIL_USER` and `EMAIL_PASS` are set in the Vercel project and redeploy after changing env vars.
 
 ## 🎉 License
 
-This project is free to use, modify, and share. Spread the holiday joy!
-
----
-
-**Made with ❤️ for teams and groups. No ads, no tracking, just Secret Santa magic!**
-
-Enjoy your family Secret Santa exchange! 🎄🎁🎅
+Free to use, modify, and share. Enjoy your Secret Santa! 🎄🎁🎅
