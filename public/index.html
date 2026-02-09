@@ -9,12 +9,17 @@
   <body>
     <div class="container">
       <header>
-        <h1>🎄 Amigo Secreto 🎅</h1>
+        <nav class="lang-switcher" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
+          <span class="lang-sep">|</span>
+          <button type="button" class="lang-btn" data-lang="es" title="Español">ES</button>
+        </nav>
+        <h1 data-i18n="heading">🎄 Amigo Secreto 🎅</h1>
       </header>
 
       <div class="form-section">
-        <h2>Participantes</h2>
-        <p>¡Agrega al menos 2 miembros de la familia para comenzar!</p>
+        <h2 data-i18n="participantsHeading">Participantes</h2>
+        <p data-i18n="participantsHint">¡Agrega al menos 2 miembros de la familia para comenzar!</p>
 
         <div id="participants-list">
           <!-- Participants will be added here -->
@@ -22,44 +27,47 @@
 
         <div class="add-participant">
           <div class="form-group">
-            <label for="participant-name">Nombre:</label>
+            <label for="participant-name" data-i18n="nameLabel">Nombre:</label>
             <input
               type="text"
               id="participant-name"
+              data-i18n-placeholder="namePlaceholder"
               placeholder="Ingresa el nombre del familiar"
             />
           </div>
 
           <div class="form-group">
-            <label for="participant-email">Correo:</label>
+            <label for="participant-email" data-i18n="emailLabel">Correo:</label>
             <input
               type="email"
               id="participant-email"
+              data-i18n-placeholder="emailPlaceholder"
               placeholder="su.correo@ejemplo.com"
             />
           </div>
 
-          <button type="button" id="add-participant-btn">
+          <button type="button" id="add-participant-btn" data-i18n="addParticipant">
             Agregar Participante
           </button>
         </div>
 
         <div class="form-group">
-          <label for="budget">Monto a gastar:</label>
-          <input type="text" id="budget" placeholder="ej. $25-50" />
+          <label for="budget" data-i18n="budgetLabel">Monto a gastar:</label>
+          <input type="text" id="budget" data-i18n-placeholder="budgetPlaceholder" placeholder="ej. $25-50" />
         </div>
 
         <div class="form-group">
-          <label for="notes">Notas adicionales:</label>
+          <label for="notes" data-i18n="notesLabel">Notas adicionales:</label>
           <textarea
             id="notes"
+            data-i18n-placeholder="notesPlaceholder"
             placeholder="Instrucciones especiales o temas..."
           ></textarea>
         </div>
       </div>
 
       <div class="action-section">
-        <button type="button" id="create-secret-santa-btn" disabled>
+        <button type="button" id="create-secret-santa-btn" disabled data-i18n="createAndSend">
           🎁 Crear Amigo Secreto y Enviar Correos
         </button>
 
@@ -69,6 +77,7 @@
       <footer></footer>
     </div>
 
+    <script src="translations.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

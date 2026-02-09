@@ -19,6 +19,47 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// Server-side translations (API errors + email content)
+const MSG = {
+  en: {
+    errorMinParticipants: "At least 2 participants with name and email are required.",
+    errorParticipantNameEmail: "Each participant must have a name and email.",
+    errorCreateAssignments: "Error creating Secret Santa assignments. Please try again.",
+    successEmailsSent: "Secret Santa emails sent to {{count}} participants!",
+    emailSubject: "Your Secret Santa Assignment!",
+    emailTitle: "Secret Santa Assignment",
+    emailGreeting: "Ho ho ho, {{name}}!",
+    emailYouAreAssigned: "You have been assigned to be the Secret Santa for:",
+    emailRememberSecret: "Remember, this is a secret! Don't tell {{name}} you're their Secret Santa.",
+    emailHappyHolidays: "Happy Holidays!",
+    emailBudget: "Budget:",
+    emailNotes: "Notes:",
+  },
+  es: {
+    errorMinParticipants: "Se necesitan al menos 2 participantes con nombre y correo",
+    errorParticipantNameEmail: "Cada participante debe tener un nombre y correo",
+    errorCreateAssignments: "Error al crear las asignaciones de Amigo Secreto. Por favor intenta de nuevo.",
+    successEmailsSent: "¡Correos de Amigo Secreto enviados a {{count}} participantes!",
+    emailSubject: "¡Tu Asignación de Amigo Secreto!",
+    emailTitle: "Asignación de Amigo Secreto",
+    emailGreeting: "¡Ho ho ho, {{name}}!",
+    emailYouAreAssigned: "Has sido asignado(a) para ser el Amigo Secreto de:",
+    emailRememberSecret: "¡Recuerda, esto es un secreto! No le digas a {{name}} que eres su Amigo Secreto.",
+    emailHappyHolidays: "¡Feliz Navidad!",
+    emailBudget: "Presupuesto:",
+    emailNotes: "Notas:",
+  },
+};
+
+function st(lang, key, params = {}) {
+  const L = MSG[lang] || MSG.es;
+  let s = L[key] || MSG.en[key] || key;
+  Object.entries(params).forEach(([k, v]) => {
+    s = s.replace(new RegExp(`{{${k}}}`, "g"), String(v));
+  });
+  return s;
+}
+
 // Secret Santa assignment logic
 function assignSecretSanta(participants) {
   if (participants.length < 2) {
@@ -104,41 +145,41 @@ function createTransporter() {
   }
 }
 
-// Send Secret Santa emails
-async function sendSecretSantaEmails(assignments, budget, notes) {
+// Send Secret Santa emails (lang: 'en' | 'es')
+async function sendSecretSantaEmails(assignments, budget, notes, lang = "es") {
   const transporter = createTransporter();
 
   for (const assignment of assignments) {
+    const subject = "🎅 " + st(lang, "emailSubject");
+    const title = st(lang, "emailTitle");
+    const giverNameSafe = escapeEmailHtml(assignment.giver.name);
+    const recipientNameSafe = escapeEmailHtml(assignment.recipient.name);
+    const greeting = st(lang, "emailGreeting", { name: giverNameSafe });
+    const youAreAssigned = st(lang, "emailYouAreAssigned");
+    const rememberSecret = st(lang, "emailRememberSecret", { name: recipientNameSafe });
+    const happyHolidays = st(lang, "emailHappyHolidays");
+    const budgetLabel = st(lang, "emailBudget");
+    const notesLabel = st(lang, "emailNotes");
+
+    const budgetSafe = budget ? escapeEmailHtml(budget) : "";
+    const notesSafe = notes ? escapeEmailHtml(notes) : "";
+
     const mailOptions = {
       from: process.env.EMAIL_USER || "your-email@gmail.com",
       to: assignment.giver.email,
-      subject: "🎅 ¡Tu Asignación de Amigo Secreto!",
+      subject,
       html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #d32f2f; text-align: center;">🎄 Asignación de Amigo Secreto 🎄</h2>
-                    <p style="font-size: 18px;">¡Ho ho ho, ${
-                      assignment.giver.name
-                    }!</p>
-                    <p>Has sido asignado(a) para ser el Amigo Secreto de:</p>
+                    <h2 style="color: #d32f2f; text-align: center;">🎄 ${title} 🎄</h2>
+                    <p style="font-size: 18px;">${greeting}</p>
+                    <p>${youAreAssigned}</p>
                     <div style="background-color: #f5f5f5; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0;">
-                        <h3 style="color: #2e7d32; margin: 0; font-size: 24px;">🎁 ${
-                          assignment.recipient.name
-                        } 🎁</h3>
+                        <h3 style="color: #2e7d32; margin: 0; font-size: 24px;">🎁 ${recipientNameSafe} 🎁</h3>
                     </div>
-                    ${
-                      budget
-                        ? `<p><strong>Presupuesto:</strong> ${budget}</p>`
-                        : ""
-                    }
-                    ${notes ? `<p><strong>Notas:</strong> ${notes}</p>` : ""}
-                    <p style="margin-top: 30px; font-style: italic; color: #666;">"
-                        ¡Recuerda, esto es un secreto! No le digas a ${
-                          assignment.recipient.name
-                        } que eres su Amigo Secreto. 🤫
-                    </p>
-                    <p style="text-align: center; color: #d32f2f;">
-                        ¡Feliz Navidad! 🎅🎄
-                    </p>
+                    ${budgetSafe ? `<p><strong>${budgetLabel}</strong> ${budgetSafe}</p>` : ""}
+                    ${notesSafe ? `<p><strong>${notesLabel}</strong> ${notesSafe}</p>` : ""}
+                    <p style="margin-top: 30px; font-style: italic; color: #666;">${rememberSecret} 🤫</p>
+                    <p style="text-align: center; color: #d32f2f;">${happyHolidays} 🎅🎄</p>
                 </div>
             `,
     };
@@ -153,54 +194,64 @@ async function sendSecretSantaEmails(assignments, budget, notes) {
   }
 }
 
+// Escape HTML for safe use in email body
+function escapeEmailHtml(str) {
+  if (str == null || typeof str !== "string") return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // API endpoint to create and send Secret Santa assignments
 app.post("/api/create-secret-santa", async (req, res) => {
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const lang = body.lang === "en" ? "en" : "es";
   try {
-    const { participants, budget, notes } = req.body;
+    const { participants, budget, notes } = body;
 
     if (!participants || participants.length < 2) {
       return res.status(400).json({
-        error: "Se necesitan al menos 2 participantes con nombre y correo",
+        error: st(lang, "errorMinParticipants"),
       });
     }
 
-    // Validate participants
     for (const participant of participants) {
       if (!participant.name || !participant.email) {
         return res.status(400).json({
-          error: "Cada participante debe tener un nombre y correo",
+          error: st(lang, "errorParticipantNameEmail"),
         });
       }
     }
 
-    // Create assignments
     const assignments = assignSecretSanta(participants);
-
-    // Send emails
-    await sendSecretSantaEmails(assignments, budget, notes);
+    await sendSecretSantaEmails(assignments, budget, notes, lang);
 
     res.json({
       success: true,
-      message: `¡Correos de Amigo Secreto enviados a ${participants.length} participantes!`,
+      message: st(lang, "successEmailsSent", { count: participants.length }),
       assignmentCount: assignments.length,
     });
   } catch (error) {
     console.error("Error creating Secret Santa:", error);
     res.status(500).json({
-      error:
-        "Error al crear las asignaciones de Amigo Secreto. Por favor intenta de nuevo.",
+      error: st(lang, "errorCreateAssignments"),
     });
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(
-    `Aplicación Amigo Secreto ejecutándose en http://localhost:${PORT}`
-  );
-  console.log(
-    "Asegúrate de configurar las variables de entorno EMAIL_USER y EMAIL_PASS para la funcionalidad de correo"
-  );
-});
+// Start server only when run directly (not when required by Vercel serverless)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(
+      `Aplicación Amigo Secreto ejecutándose en http://localhost:${PORT}`
+    );
+    console.log(
+      "Asegúrate de configurar las variables de entorno EMAIL_USER y EMAIL_PASS para la funcionalidad de correo"
+    );
+  });
+}
 
 module.exports = app;

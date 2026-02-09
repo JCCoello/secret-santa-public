@@ -13,12 +13,42 @@ const resultMessage = document.getElementById("result-message");
 const budgetInput = document.getElementById("budget");
 const notesInput = document.getElementById("notes");
 
+// Apply all translations to the page (used on load and when language changes)
+function applyTranslations() {
+  document.title = t("title");
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (key === "heading") {
+      el.textContent = "🎄 " + t(key) + " 🎅";
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+  });
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    const lang = btn.getAttribute("data-lang");
+    btn.classList.toggle("active", currentLang === lang);
+  });
+  updateCreateButton();
+  renderParticipants();
+}
+
 // Initialize
 document.addEventListener("DOMContentLoaded", function () {
+  document.documentElement.lang = currentLang;
+  applyTranslations();
+
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      setLang(this.getAttribute("data-lang"));
+    });
+  });
+
   addParticipantBtn.addEventListener("click", addParticipant);
   createSecretSantaBtn.addEventListener("click", createSecretSanta);
 
-  // Allow Enter key to add participants
   participantNameInput.addEventListener("keypress", function (e) {
     if (e.key === "Enter") addParticipant();
   });
@@ -35,42 +65,37 @@ function addParticipant() {
   const name = participantNameInput.value.trim();
   const email = participantEmailInput.value.trim();
 
-  // Validation
   if (!name) {
-    showMessage("Por favor ingresa un nombre", "error");
+    showMessage(t("errorEnterName"), "error");
     participantNameInput.focus();
     return;
   }
 
   if (!email) {
-    showMessage("Por favor ingresa un correo electrónico", "error");
+    showMessage(t("errorEnterEmail"), "error");
     participantEmailInput.focus();
     return;
   }
 
   if (!isValidEmail(email)) {
-    showMessage("Por favor ingresa un correo electrónico válido", "error");
+    showMessage(t("errorValidEmail"), "error");
     participantEmailInput.focus();
     return;
   }
 
-  // Check for duplicate emails
   if (participants.some((p) => p.email.toLowerCase() === email.toLowerCase())) {
-    showMessage("Este correo ya fue agregado", "error");
+    showMessage(t("errorDuplicateEmail"), "error");
     participantEmailInput.focus();
     return;
   }
 
-  // Add participant
   const participant = { name, email };
   participants.push(participant);
 
-  // Clear inputs
   participantNameInput.value = "";
   participantEmailInput.value = "";
   participantNameInput.focus();
 
-  // Update UI
   renderParticipants();
   updateCreateButton();
   hideMessage();
@@ -89,7 +114,9 @@ function renderParticipants() {
 
   if (participants.length === 0) {
     participantsList.innerHTML =
-      '<p style="text-align: center; color: #666; font-style: italic;">Aún no se han agregado participantes. ¡Agrega al menos 2 para comenzar!</p>';
+      '<p style="text-align: center; color: #666; font-style: italic;">' +
+      t("noParticipantsYet") +
+      "</p>";
     return;
   }
 
@@ -99,14 +126,10 @@ function renderParticipants() {
 
     participantDiv.innerHTML = `
             <div class="participant-info">
-                <div class="participant-name">${escapeHtml(
-                  participant.name
-                )}</div>
-                <div class="participant-email">${escapeHtml(
-                  participant.email
-                )}</div>
+                <div class="participant-name">${escapeHtml(participant.name)}</div>
+                <div class="participant-email">${escapeHtml(participant.email)}</div>
             </div>
-            <button class="remove-participant" onclick="removeParticipant(${index})">Eliminar</button>
+            <button class="remove-participant" onclick="removeParticipant(${index})">${t("remove")}</button>
         `;
 
     participantsList.appendChild(participantDiv);
@@ -114,56 +137,50 @@ function renderParticipants() {
 }
 
 // Update create button state
+function getCreateButtonText() {
+  if (participants.length < 2) {
+    const need = 2 - participants.length;
+    return "🎁 " + (need === 1 ? t("addMoreOne") : tWithParams("addMoreMany", { count: need }));
+  }
+  if (currentLang === "es") return "🎁 Crear Amigo Secreto y Enviar " + participants.length + " Correos";
+  return "🎁 Create Secret Santa and Send " + participants.length + " Emails";
+}
+
 function updateCreateButton() {
   createSecretSantaBtn.disabled = participants.length < 2;
-
-  if (participants.length < 2) {
-    createSecretSantaBtn.textContent = `🎁 Agrega ${
-      2 - participants.length
-    } participante${2 - participants.length > 1 ? "s" : ""} más para comenzar`;
-  } else {
-    createSecretSantaBtn.textContent = `🎁 Crear Amigo Secreto y Enviar ${participants.length} Correos`;
-  }
+  createSecretSantaBtn.textContent = getCreateButtonText();
 }
 
 // Create Secret Santa function
 async function createSecretSanta() {
   if (participants.length < 2) {
-    showMessage("Se necesitan al menos 2 participantes", "error");
+    showMessage(t("errorMinParticipants"), "error");
     return;
   }
 
-  // Disable button and show loading
   createSecretSantaBtn.disabled = true;
-  createSecretSantaBtn.textContent =
-    "🎅 Creando asignaciones y enviando correos...";
+  createSecretSantaBtn.textContent = "🎅 " + t("creating");
   hideMessage();
 
   try {
     const response = await fetch("/api/create-secret-santa", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         participants,
         budget: budgetInput.value.trim() || null,
         notes: notesInput.value.trim() || null,
+        lang: currentLang,
       }),
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      showMessage(`🎉 ¡Éxito! ${data.message}`, "success");
+      showMessage("🎉 " + t("successPrefix") + " " + data.message, "success");
 
-      // Clear form after successful submission
       setTimeout(() => {
-        if (
-          confirm(
-            "¡Amigo Secreto creado exitosamente! ¿Te gustaría limpiar el formulario para crear otro?"
-          )
-        ) {
+        if (confirm(t("confirmClearForm"))) {
           participants = [];
           renderParticipants();
           budgetInput.value = "";
@@ -172,25 +189,19 @@ async function createSecretSanta() {
         }
       }, 3000);
     } else {
-      showMessage(`❌ Error: ${data.error}`, "error");
+      showMessage("❌ " + (data.error || data.message || ""), "error");
     }
   } catch (error) {
     console.error("Error creating Secret Santa:", error);
-    showMessage(
-      "❌ Error al crear Amigo Secreto. Por favor verifica tu conexión a internet e intenta de nuevo.",
-      "error"
-    );
+    showMessage("❌ " + t("errorNetwork"), "error");
   } finally {
-    // Re-enable button
     updateCreateButton();
     createSecretSantaBtn.disabled = participants.length < 2;
   }
 }
 
-// Utility functions
 function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function escapeHtml(text) {
@@ -203,18 +214,14 @@ function showMessage(message, type) {
   resultMessage.textContent = message;
   resultMessage.className = type;
   resultMessage.classList.remove("hidden");
-
-  // Auto-hide success messages after 5 seconds
-  if (type === "success") {
-    setTimeout(hideMessage, 5000);
-  }
+  if (type === "success") setTimeout(hideMessage, 5000);
 }
 
 function hideMessage() {
   resultMessage.classList.add("hidden");
 }
 
-// Example data for testing (remove in production)
+// Example data for testing
 function addExampleData() {
   if (participants.length === 0) {
     participants = [
@@ -228,9 +235,4 @@ function addExampleData() {
   }
 }
 
-// Add example data button (for testing)
-// Uncomment the next line if you want a quick way to add test data
-// console.log('To add example data, run: addExampleData()');
-
-// Initial render
 renderParticipants();

@@ -11,6 +11,7 @@ A simple, ad-free Secret Santa web application perfect for teams, families, or a
 - **Mobile Friendly**: Works great on phones and tablets
 - **No Ads**: Pure family fun without distractions
 - **Privacy Focused**: No data storage or tracking
+- **English & Spanish**: Language switcher in the header; choice is saved and used for UI, emails, and API messages
 
 ## 🚀 Quick Start
 
@@ -38,6 +39,28 @@ A simple, ad-free Secret Santa web application perfect for teams, families, or a
    ```
 
 5. **Open your browser** and go to `http://localhost:3000`
+
+## 🌐 Deploy globally with Vercel
+
+Deploy this app to Vercel to get a public URL so anyone can access it from anywhere.
+
+1. **Install Vercel CLI** (optional, for local deploy):
+
+   ```bash
+   npm i -g vercel
+   ```
+
+2. **Deploy**:
+
+   - **From the web**: Push this repo to GitHub, then go to [vercel.com](https://vercel.com) → **Add New Project** → import the repo. Vercel will detect the Node app and use `api/index.js` and `vercel.json`.
+   - **From the CLI**: Run `vercel` in the project root and follow the prompts.
+
+3. **Set environment variables on Vercel** (required for email):
+
+   - In the Vercel project: **Settings → Environment Variables**
+   - Add `EMAIL_USER` and `EMAIL_PASS` (same as in Email Setup).
+
+4. Your app will be live at `https://your-project.vercel.app` (or your custom domain).
 
 ## 📧 Email Setup
 
@@ -117,6 +140,7 @@ secret-santa-app/
 ├── .env                  # Email credentials (create this)
 └── public/
     ├── index.html        # Main web interface
+    ├── translations.js  # EN/ES strings and language helpers
     ├── styles.css        # Styling and layout
     └── script.js         # Frontend JavaScript
 ```
